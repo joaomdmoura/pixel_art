@@ -1330,11 +1330,18 @@ var App = (function () {
       chan.on("moved", function (user) {
         if (id != user.id) {
           if (players[user.id]) {
-            change_position(user.id, user.position);
+            change_position(user.id, user.direction, user.position);
           } else {
             add_player(user.id);
-            change_position(user.id, user.position);
+            change_position(user.id, user.direction, user.position);
           }
+        }
+      });
+
+      chan.on("stop", function (user) {
+        if (id != user.id) {
+          players[user.id].animations.stop();
+          players[user.id].frame = 0;
         }
       });
 
@@ -1344,10 +1351,21 @@ var App = (function () {
 
       function add_player(id) {
         var lol = game.add.sprite(32, 504, 'dude');
+        game.physics.arcade.enable(lol);
+        lol.body.collideWorldBounds = true;
+
+        lol.animations.add('left', [6, 4, 6, 5], 5, true);
+        lol.animations.add('right', [1, 2, 1, 3], 5, true);
+
         players[id] = lol;
       }
 
-      function change_position(id, cord) {
+      function animate(p, direction) {
+        p.animations.play(direction);
+      }
+
+      function change_position(id, direction, cord) {
+        animate(players[id], direction);
         players[id].position = cord;
       }
 
@@ -1398,15 +1416,16 @@ var App = (function () {
         player.body.velocity.x = 0;
 
         if (cursors.left.isDown) {
-          chan.push("moved", { 'id': id, 'cord': player.position });
+          chan.push("moved", { 'id': id, direction: 'left', 'cord': player.position });
           player.body.velocity.x = -100;
           player.animations.play('left');
         } else if (cursors.right.isDown) {
-          chan.push("moved", { 'id': id, 'cord': player.position });
+          chan.push("moved", { 'id': id, direction: 'right', 'cord': player.position });
           player.body.velocity.x = 100;
           player.animations.play('right');
         } else {
           player.animations.stop();
+          chan.push("stop", { 'id': id });
           player.frame = 0;
         }
         if (cursors.up.isDown && player.body.touching.down) {

@@ -7,7 +7,12 @@ defmodule PixelArt.LevelChannel do
   end
 
   def handle_in("moved", payload, socket) do
-    broadcast! socket, "moved", %{id: payload["id"], position: payload["cord"] }
+    broadcast! socket, "moved", %{id: payload["id"], direction: payload["direction"], position: payload["cord"] }
+    {:reply, {:ok, payload}, assign(socket, :user, payload)}
+  end
+
+  def handle_in("stop", payload, socket) do
+    broadcast! socket, "stop", %{id: payload["id"]}
     {:reply, {:ok, payload}, assign(socket, :user, payload)}
   end
 
