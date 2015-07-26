@@ -17,9 +17,10 @@
 
     <%= @inner %>
 
-    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="<%= static_path(@conn, "/js/jquery-1.6.4.min.js") %>"></script>
     <script src="<%= static_path(@conn, "/js/phaser.min.js") %>"></script>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script>require("web/static/js/game")</script>
     <script>require("web/static/js/app")</script>
   </body>
 </html>

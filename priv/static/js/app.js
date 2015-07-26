@@ -1296,68 +1296,81 @@ var App = (function () {
   _createClass(App, null, [{
     key: "init",
     value: function init() {
+      var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+      var player = null;
+      var platforms = null;
+      var cursors = null;
+      var socket = new _phoenix.Socket("/ws");
       var id = Date.now();
       var players = {};
-      var socket = new _phoenix.Socket("/ws");
-      socket.connect();
-      socket.onClose(function (e) {
-        return console.log("CLOSE", e);
-      });
+      var chan = setup_soscket(socket);
 
-      var chan = socket.chan("levels", {});
+      function setup_soscket(socket) {
+        socket.connect();
+        socket.onClose(function (e) {
+          return console.log("CLOSE", e);
+        });
 
-      chan.join('levels').receive("ignore", function () {
-        return console.log("auth error");
-      }).receive("ok", function () {
-        return logged_player(id);
-      }).after(10000, function () {
-        return console.log("Connection interruption");
-      });
+        var chan = socket.chan("levels", {});
 
-      chan.onError(function (e) {
-        return console.log("something went wrong", e);
-      });
-      chan.onClose(function (e) {
-        return console.log("channel closed", e);
-      });
+        chan.join('levels').receive("ignore", function () {
+          return console.log("auth error");
+        }).receive("ok", function () {
+          return logged_player(id);
+        }).after(10000, function () {
+          return console.log("Connection interruption");
+        });
 
-      chan.on("logged", function (user) {
-        if (id != user.id) {
-          add_player(user.id);
-        }
-      });
+        chan.onError(function (e) {
+          return console.log("something went wrong", e);
+        });
+        chan.onClose(function (e) {
+          return console.log("channel closed", e);
+        });
 
-      chan.on("moved", function (user) {
-        if (id != user.id) {
-          if (players[user.id]) {
-            change_position(user.id, user.direction, user.position);
-          } else {
+        setup_events(chan);
+        return chan;
+      }
+
+      function setup_events(chan) {
+        chan.on("logged", function (user) {
+          if (id != user.id) {
             add_player(user.id);
-            change_position(user.id, user.direction, user.position);
           }
-        }
-      });
+        });
 
-      chan.on("stop", function (user) {
-        if (id != user.id) {
-          players[user.id].animations.stop();
-          players[user.id].frame = 0;
-        }
-      });
+        chan.on("moved", function (user) {
+          if (id != user.id) {
+            if (players[user.id]) {
+              change_position(user.id, user.direction, user.position);
+            } else {
+              add_player(user.id);
+              change_position(user.id, user.direction, user.position);
+            }
+          }
+        });
+
+        chan.on("stop", function (user) {
+          if (id != user.id) {
+            players[user.id].animations.stop();
+            players[user.id].frame = 0;
+          }
+        });
+      }
 
       function logged_player(id) {
         chan.push("logged", { user: id });
       }
 
       function add_player(id) {
-        var lol = game.add.sprite(32, 504, 'dude');
-        game.physics.arcade.enable(lol);
-        lol.body.collideWorldBounds = true;
+        var new_playe = game.add.sprite(32, 504, 'dude');
+        game.physics.arcade.enable(new_playe);
+        new_playe.body.collideWorldBounds = true;
 
-        lol.animations.add('left', [6, 4, 6, 5], 5, true);
-        lol.animations.add('right', [1, 2, 1, 3], 5, true);
+        new_playe.animations.add('left', [6, 4, 6, 5], 5, true);
+        new_playe.animations.add('right', [1, 2, 1, 3], 5, true);
 
-        players[id] = lol;
+        players[id] = new_playe;
       }
 
       function animate(p, direction) {
@@ -1368,11 +1381,6 @@ var App = (function () {
         animate(players[id], direction);
         players[id].position = cord;
       }
-
-      var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
-      var player = null;
-      var platforms = null;
-      var cursors = null;
 
       function preload() {
         game.load.image('sky', '/images/sky.png');
@@ -1445,6 +1453,10 @@ $(function () {
 
 exports["default"] = App;
 module.exports = exports["default"];
+});
+
+;require.register("web/static/js/game", function(exports, require, module) {
+"use strict";
 });
 
 ;
