@@ -6,6 +6,6 @@ defmodule PixelArt.PageController do
   end
 
   def loaderio(conn, _params) do
-    render conn, "loaderio-dba90f34b1aea2c4c24db9c1d75fe77e.html"
+    render conn, "loaderio.html"
   end
 end
