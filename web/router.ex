@@ -16,5 +16,6 @@ defmodule PixelArt.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    get "/loaderio-dba90f34b1aea2c4c24db9c1d75fe77e", PageController, :loaderio
   end
 end
